@@ -11,19 +11,25 @@ const consl = readline.createInterface({
 // Функция для задания вопроса пользователю
 const promptForInput = () => {
   consl.question('Enter text: ', (text) => {  // Задаем вопрос
-    // Добавляем текст, введенный пользователем, в файл 'text.txt'
-    fs.appendFile(`${folderPath}/text.txt`, text + '\n', (err) => {
-      if (err) throw err;  // Если произошла ошибка, выбрасываем исключение
-      console.log('Text was added to the file!');
-      promptForInput();  // Задаем вопрос снова после записи текста
-    });
+    if (text === 'exit') {
+      finishInput();
+    } else {
+      // Добавляем текст, введенный пользователем, в файл 'text.txt'
+      fs.appendFile(`${folderPath}/text.txt`, text + '\n', (err) => {
+        if (err) throw err;  // Если произошла ошибка, выбрасываем исключение
+        console.log('Text was added to the file!');
+        promptForInput();  // Задаем вопрос снова после записи текста
+      });
+    }
   });
+
+  // Обработчик события завершающий процесс 'SIGINT' (Ctrl+C)
+  consl.on('SIGINT', () => finishInput());
 };
 
 promptForInput();
 
-// Обработчик события завершающий процесс 'SIGINT' (Ctrl+C)
-consl.on('SIGINT', () => {
+function finishInput() {
   console.log('\nProcess completed.');
-  process.exit(0);  // Завершаем процесс (кодом 0 - успешное завершение)
-});
+  process.exit(0);  // Завершение процесса (код 0 - успешное завершение)
+}
