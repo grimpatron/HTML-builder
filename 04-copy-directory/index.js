@@ -1,32 +1,81 @@
-const fs = require('fs').promises; // Импорт модуля 'fs' (file system)
-const path = require('path'); // Импорт модуля 'path' (paths to filess)
-const folderPath = './04-copy-directory'; // Путь к папке
+const fs = require('fs').promises;
+const path = require('path');
+const folderPath = './04-copy-directory';
+
+
+async function clearDir(dir) {
+    let entries = await fs.readdir(dir, { withFileTypes: true });    // Читаем содержимое
+
+    // Проходим по каждому элементу
+    for (let entry of entries) {
+        let entryPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+            await fs.rmdir(entryPath, { recursive: true }); // Если это директория, удаляем ее
+        } else {
+            await fs.unlink(entryPath); // удаляем файл
+        }
+    }
+}
+
 
 async function copyDir(src, dest) {
-    // Создаём конечную папку, если она еще не существует
+    // Создаем директорию, если не существует
     try {
         await fs.mkdir(dest, { recursive: true });
     } catch (err) {
         if (err.code !== 'EEXIST') throw err;
     }
 
-    // Читаем содержимое исходной папки.
+    // Читаем содержимое исходной директории
     let entries = await fs.readdir(src, { withFileTypes: true });
-    for (let entry of entries) {
 
-        // Пути к папкам.
+    // Проходим по каждому элементу
+    for (let entry of entries) {
         let srcPath = path.join(src, entry.name);
         let destPath = path.join(dest, entry.name);
 
         if (entry.isDirectory()) {
-            // Если элемент - папкой, рекурсивно копируем содержимое.
-            await copyDir(srcPath, destPath);
+            await copyDir(srcPath, destPath);         // Если это , копируем директорию
         } else {
-            // Если элемент - файл, копируем файл.
-            await fs.copyFile(srcPath, destPath);
+            await fs.copyFile(srcPath, destPath);        //  копируем файл
         }
     }
 }
 
-copyDir(`${folderPath}/files`, `${folderPath}/copying-files`).catch(console.error);
+clearDir(`${folderPath}/files-copy`);
+copyDir(`${folderPath}/files`, `${folderPath}/files-copy`).catch(console.error);
+
+
+
+
+
+
+
+
+
+
+
+// const fs = require('fs').promises;
+// const path = require('path');
+// const folderPath = './04-copy-directory';
+
+// async function copyDir(src, dest) {
+//     try {
+//         await fs.mkdir(dest, { recursive: true });
+//     } catch (err) {
+//         if (err.code !== 'EEXIST') throw err;
+//     }
+
+//     let entries = await fs.readdir(src, { withFileTypes: true });
+//     for (let entry of entries) {
+//         let srcPath = path.join(src, entry.name);
+//         let destPath = path.join(dest, entry.name);
+
+//         if (entry.isDirectory()) {
+//             await copyDir(srcPath, destPath);
+//         } else {
+//             await fs.copyFile(srcPath, destPath);
+//         }
+//     }
+// }
 
